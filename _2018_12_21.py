@@ -1,5 +1,5 @@
 # 16_many_snakes.py
-#import random
+import random
 #from collections import deque
 
 import pygame, sys
@@ -18,6 +18,41 @@ FPS = 30  # Frames Per second
 
 #random.seed(a=1)
 
+class Sqr:
+    """
+    bool bomb - True if in object Sqr is a bomb, False otherwise
+    bool flag - True if in object Sqr is a flag, False otherwise
+    bool uncovered - False if object is covered, True otherwise
+    """
+    bomb=False
+    flag=False
+    uncovered=False
+
+    def __init__(
+        self, 
+        bomb=False, 
+        flag=False, 
+        uncovered=False,
+                 ): 
+        if type(bomb)is not bool : bomb = False 
+        if type(flag)is not bool : flag = False
+        if type(flag)is not bool : uncovered = False
+        self.bomb=bomb   
+        self.flag=flag
+        self.uncovered=uncovered
+#należy zabespieczyć
+def random_bombs(board): 
+    XSize=len(board[0])
+    YSize=len(board) 
+    buttons=XSize*YSize
+    n=int(random.randrange(10,25)*(buttons/100))
+    for i in range(0,n):
+        y=random.randrange(0,YSize)
+        x=random.randrange(0,XSize)
+        if board[y][x].bomb == False:
+            board[y][x].bomb = True
+        else:
+            i=i-1
 
 def draw_segment(surface, color, x, y):
     """
@@ -173,7 +208,9 @@ class FoodProvider:
 
 def draw(surface, board):
     GROUND_COLOR = (0, 0, 50)
-    BUTTON_COLOR = (50, 50, 50)
+    BUTTON_COV = (200,200,200)
+    BUTTON_UNCOV = (150,50,0)
+    BUTTON_FLAG = (0,50,150)
     ground = (
         0, 0,
         640, 360
@@ -182,39 +219,30 @@ def draw(surface, board):
     XSize=len(board[0])
     YSize=len(board)  
     border=10
-    size=((ground[2]-border)/YSize,(ground[3]-border)/XSize)
+    size=((ground[2]-5)/YSize,(ground[3]-5)/XSize)
     for j in range(0,XSize):
         for i in range(0,YSize):                     
             position = (
-                border/2+size[0]*i, border/2+size[1]*j,
+                2+border/2+size[0]*i, 2+border/2+size[1]*j,
                 size[0]-border/2, size[1]-border/2
             )
+            BUTTON_COLOR=BUTTON_COV
+            if board[i][j].flag==False :
+                BUTTON_COLOR=BUTTON_COLOR
+            else:
+                BUTTON_COLOR=BUTTON_FLAG
 
-            if 1 :
-                pygame.draw.rect(surface, BUTTON_COLOR, position)
+            if board[i][j].uncovered==False :
+                BUTTON_COLOR=BUTTON_COLOR
+            else:
+                BUTTON_COLOR=BUTTON_UNCOV
+
+            pygame.draw.rect(surface, BUTTON_COLOR, position)
             
 
 
-    
 
-class Sqr:
-    """
-    bool bomb - True if in object Sqr is a bomb, False otherwise
-    bool flag - True if in object Sqr is a flag, False otherwise
-    bool uncovered - False if object is covered, True otherwise
-    """
-    def __init__(
-        self, 
-        bomb=False, 
-        flag=False, 
-        uncovered=False,
-                 ): 
-        if type(bomb)is not bool : bomb = False 
-        if type(flag)is not bool : flag = False
-        if type(flag)is not bool : uncovered = False
-        self.bomb=bomb   
-        self.flag=flag
-        self.uncovered=uncovered
+
 
 def run_game():
     pygame.init()
@@ -226,6 +254,7 @@ def run_game():
     )
     pygame.display.set_caption('Minesweaper')
     board= [9*[Sqr]]*16
+    random_bombs(board)
     #food = FoodProvider()
     #snakes = []
     #snakes.append(Snake(food=food))
@@ -275,7 +304,6 @@ def run_game():
     #            snake.move()
         pygame.display.update()
         fpsClock.tick(FPS)
-    #
 
 if __name__ == '__main__':
     run_game()
