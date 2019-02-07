@@ -7,20 +7,19 @@ from math import ceil, floor
 __FPS__ = 30  # Frames Per second
 __AMOUNT_OF_FIELDS__=(8,8) # Numbers of bombs at row, at column
 __BUTTON_SIZE__=(30,30) #Size of button without perimeter
-__END__=False #If user uncover field with bomb then True, and game has ended
 __PERCENTAGE_OF_BOMBS__=(12,18) # (x,y) x-lower bound of percentage of all fields of bombs, y - upper bound
 __FONT__='freesansbold.ttf' #Font of number in field
-__AMOUNT_OF_BOMBS__=0 #Amount of bombs, changed after addition of bombs
-__UNCOVERED_FIELDS__=0 #Number of uncovered fields
 __FONT_SIZE__=int(0.75*__BUTTON_SIZE__[1]) #Size of number in field
 
 def data_update():
-    global __BORDER__,__PERIMETER__,__TOOLBAR_SIZE__,__WINDOW_SIZE__,__AMOUNT_OF_NON_BOMBS__
+    global __BORDER__,__PERIMETER__,__TOOLBAR_SIZE__,__WINDOW_SIZE__,__AMOUNT_OF_NON_BOMBS__,__UNCOVERED_FIELDS__
     __BORDER__=((0.25*__BUTTON_SIZE__[0])/2,(0.25*__BUTTON_SIZE__[1])/2)  #Perimeter of button
     __PERIMETER__=((0.1*__BUTTON_SIZE__[0])//2,(0.1*__BUTTON_SIZE__[1])//2) #Perimeter of window
     __TOOLBAR_SIZE__=(int(__AMOUNT_OF_FIELDS__[0]*__BUTTON_SIZE__[0]+__PERIMETER__[0]*4),35) #Size of toolbar
     __WINDOW_SIZE__=(__TOOLBAR_SIZE__[0],int(__AMOUNT_OF_FIELDS__[1]*__BUTTON_SIZE__[1]+__PERIMETER__[1]*4)+__TOOLBAR_SIZE__[1]) #Size of widows    
     __AMOUNT_OF_NON_BOMBS__=(__AMOUNT_OF_FIELDS__[0])*(__AMOUNT_OF_FIELDS__[1]) #Amount of fields without bombs
+    __UNCOVERED_FIELDS__=0 #Number of uncovered fields
+    __AMOUNT_OF_BOMBS__=0 #Amount of bombs, changed after addition of bombs
     
 def mantissa(x):
     return x-floor(x)
@@ -52,6 +51,11 @@ class Button:
         self.number=number
         self.flag=flag
         self.uncovered=uncovered
+    def change_cover(self):
+        self.uncovered=True
+        global __UNCOVERED_FIELDS__
+        __UNCOVERED_FIELDS__+=1
+
 
 def bomb_around(board=None,y=-1,x=-1):
     if board==None or y==-1 or x==-1: return
@@ -146,10 +150,9 @@ def Uncoverall(board=None):
 
 def Uncover_field(board,y,x):
     if board==None or y==-1 or x==-1 or board[y][x].uncovered : return
-    global __UNCOVERED_FIELDS__,__AMOUNT_OF_FIELDS__
-    if board[y][x].uncovered == False :
-        board[y][x].uncovered = True
-        __UNCOVERED_FIELDS__=__UNCOVERED_FIELDS__+1    
+    global __AMOUNT_OF_FIELDS__
+    if board[y][x].uncovered: return
+    board[y][x].change_cover() 
     if board[y][x].number == 0 :
         for i in range(0,3):
             for j in range(0,3):
@@ -179,6 +182,7 @@ class THE:
     
     def Case_of_win(self):
         global __UNCOVERED_FIELDS__,__AMOUNT_OF_NON_BOMBS__
+        print(__UNCOVERED_FIELDS__,__AMOUNT_OF_NON_BOMBS__)
         if __UNCOVERED_FIELDS__==__AMOUNT_OF_NON_BOMBS__ :      
             self.if_end=True
             self.win_lose=True
