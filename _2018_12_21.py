@@ -182,7 +182,6 @@ class THE:
     
     def Case_of_win(self):
         global __UNCOVERED_FIELDS__,__AMOUNT_OF_NON_BOMBS__
-        print(__UNCOVERED_FIELDS__,__AMOUNT_OF_NON_BOMBS__)
         if __UNCOVERED_FIELDS__==__AMOUNT_OF_NON_BOMBS__ :      
             self.if_end=True
             self.win_lose=True
