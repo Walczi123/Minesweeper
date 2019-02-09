@@ -171,7 +171,7 @@ class THE:
         self.if_end=False
         self.win_lose=False #True - win, False - lose
         self.choosing=False
-        self.end_iter=False
+        self.end_iter=True
     
     def END(self):
         if self.if_end:
