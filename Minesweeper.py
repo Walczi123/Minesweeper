@@ -1,3 +1,4 @@
+
 from random import randrange
 import pygame, sys
 from pygame.locals import *
@@ -52,10 +53,10 @@ class Button:
         self.flag=flag
         self.uncovered=uncovered
     def change_cover(self):
-        self.uncovered=True
-        global __UNCOVERED_FIELDS__
-        __UNCOVERED_FIELDS__+=1
-
+        if not self.uncovered:
+            self.uncovered=True
+            global __UNCOVERED_FIELDS__       
+            __UNCOVERED_FIELDS__+=1
 
 def bomb_around(board=None,y=-1,x=-1):
     if board==None or y==-1 or x==-1: return
@@ -70,13 +71,15 @@ def random_bombs(board=None):
     global __AMOUNT_OF_NON_BOMBS__,__AMOUNT_OF_BOMBS__,__AMOUNT_OF_FIELDS__
     __AMOUNT_OF_BOMBS__=int(randrange(__PERCENTAGE_OF_BOMBS__[0],__PERCENTAGE_OF_BOMBS__[1])*(__AMOUNT_OF_NON_BOMBS__/100))
     __AMOUNT_OF_NON_BOMBS__-=__AMOUNT_OF_BOMBS__
-    for i in range(0,__AMOUNT_OF_BOMBS__):
+    i=0
+    while i<__AMOUNT_OF_BOMBS__:
         y=randrange(0,__AMOUNT_OF_FIELDS__[0])
         x=randrange(0,__AMOUNT_OF_FIELDS__[1])
         if board[y][x].bomb == False:
             board[y][x].bomb = True
         else:
             i=i-1
+        i+=1
     for i in range(0,__AMOUNT_OF_FIELDS__[0]) :
          for j in range(0,__AMOUNT_OF_FIELDS__[1]):
              if not board[i][j].bomb : bomb_around(board,i,j)
@@ -180,11 +183,29 @@ class THE:
             else:
                 self.Losing()
     
-    def Case_of_win(self):
-        global __UNCOVERED_FIELDS__,__AMOUNT_OF_NON_BOMBS__
-        if __UNCOVERED_FIELDS__==__AMOUNT_OF_NON_BOMBS__ :      
+    def Case_of_win(self,board):
+        if __UNCOVERED_FIELDS__==(__AMOUNT_OF_FIELDS__[0]*__AMOUNT_OF_FIELDS__[1])-__AMOUNT_OF_BOMBS__:
             self.if_end=True
             self.win_lose=True
+            """
+            unc=0
+            cov=1
+            all=__AMOUNT_OF_FIELDS__[0]*__AMOUNT_OF_FIELDS__[1]
+            while unc+cov!=all:
+                unc=0
+                cov=0
+                for i in range(0,__AMOUNT_OF_FIELDS__[0]):
+                    for j in range(0,__AMOUNT_OF_FIELDS__[1]):
+                        if board[i][j].uncovered:
+                            unc+=1
+                        else:
+                            cov+=1
+       
+            if unc == all-__AMOUNT_OF_BOMBS__:
+                self.if_end=True
+                self.win_lose=True
+            """
+
             
     def Case_of_lose(self):
         if self.if_end and not self.win_lose :      
@@ -192,14 +213,15 @@ class THE:
             self.win_lose=False 
 
     def check_end(self,surface,board,toolbar):
-        self.Case_of_win()
+        self.Case_of_win(board)
         self.Case_of_lose()
         if self.if_end :
             Uncoverall(board)
             draw(surface,board)
-            toolbar.draw()
+            toolbar.draw()           
             if self.end_iter:
-                pygame.time.wait(1000)
+                pygame.display.update()
+                pygame.time.wait(1500)
                 self.end_iter = not self.end_iter
             if self.win_lose:
                 self.Winning(surface)
@@ -416,9 +438,15 @@ class Toolbar:
 
     def click(self,pos):
         if mouse_at_position(pos,self.leftbutton.position()):
+            self.rightbutton.menu_open=False
             self.leftbutton.click()
         elif mouse_at_position(pos,self.rightbutton.position()):
+            self.leftbutton.menu_open=False
             self.rightbutton.click()
+        else:
+            self.rightbutton.menu_open=False
+            self.leftbutton.menu_open=False
+
 
 def start_game():
     data_update()
@@ -456,6 +484,8 @@ def run_game():
                 t[1]=pygame.mouse.get_pos()
                 pos_a = position_to_button(t[1])
                 if the.choosing :
+                    toolbar.rightbutton.menu_open=False
+                    toolbar.leftbutton.menu_open=False
                     the.last_will(t)
                 elif toolbar.leftbutton.menu_open and toolbar.leftbutton.menu.in_range(t):
                     toolbar.leftbutton.menu.action(t)
@@ -464,7 +494,13 @@ def run_game():
                 elif t[1][1]<__TOOLBAR_SIZE__[1]:
                     toolbar.click(t)
                 elif pos_a==pos_b:
-                    the.if_end=Button_click(pos_a,board,event.button)
+                    if not toolbar.rightbutton.menu_open and not toolbar.leftbutton.menu_open:
+                        toolbar.rightbutton.menu_open=False
+                        toolbar.leftbutton.menu_open=False
+                        the.if_end=Button_click(pos_a,board,event.button)
+                    else:
+                        toolbar.rightbutton.menu_open=False
+                        toolbar.leftbutton.menu_open=False
         draw(DISPLAYSURF,board)
         toolbar.draw()       
         the.check_end(DISPLAYSURF,board,toolbar)    
@@ -473,5 +509,5 @@ def run_game():
 
 if __name__ == '__main__':
     print("Hello!\nThis is my Minesweaper coded in Python 3.6")
-    print("~ Patryk Walczak 7 Feb 2019")
+    print("~ Patryk Walczak 25 Feb 2019")
     run_game()
